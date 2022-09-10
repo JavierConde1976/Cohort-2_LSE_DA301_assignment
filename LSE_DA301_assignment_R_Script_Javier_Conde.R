@@ -4,7 +4,7 @@
 
 ###############################################################################
 
-# Assignment template
+# LSE_DA301_Assignment_RScript_Javier_Conde
 
 ## Scenario
 ## You are a data analyst working for Turtle Games, a game manufacturer and 
@@ -27,37 +27,7 @@
 
 ################################################################################
 
-# Week 4 assignment: EDA using R
-
-## The sales department of Turtle games prefers R to Python. As you can perform
-## data analysis in R, you will explore and prepare the data set for analysis by
-## utilising basic statistics and plots. Note that you will use this data set 
-## in future modules as well and it is, therefore, strongly encouraged to first
-## clean the data as per provided guidelines and then save a copy of the clean 
-## data for future use.
-
-# Instructions
-# 1. Load and explore the data.
-##  - Remove redundant columns (Ranking, Year, Genre, Publisher) by creating 
-##      a subset of the data frame.
-##  - Create a summary of the new data frame.
-# 2. Create plots to review and determine insights into data set.
-##  - Create scatterplots, histograms and boxplots to gain insights into
-##      the Sales data.
-##  - Note your observations and diagrams that could be used to provide
-##      insights to the business.
-# 3. Determine the impact on sales per product_id.
-##  - Use the group_by and aggregate functions to sum the values grouped by
-##      product.
-##  - Create a summary of the new data frame.
-# 4. Create plots to review and determine insights into the data set.
-##  - Create scatterplots, histograms, and boxplots to gain insights into 
-##     the Sales data.
-##  - Note your observations and diagrams that could be used to provide 
-##     insights to the business.
-# 5. Include your insights and observations.
-
-###############################################################################
+# Week 4: EDA using R-----------------------------------------------------------
 
 # 1. Load and explore the data
 
@@ -72,14 +42,17 @@ turtle_sales <- read.csv(file.choose(), header=T)
 # Print the data frame.
 turtle_sales
 
+View(turtle_sales)
+
 # Create a new data frame from a subset of the sales data frame.
 # Remove unnecessary columns (Ranking, Year, Genre, Publisher). 
 
 turtle_sales2 <- subset(turtle_sales, select=-c(Ranking, Year, Genre, Publisher))
 
-# View the data frame.
+# View the data frame and structure.
 
 turtle_sales2
+str(turtle_sales2)
 
 # View the descriptive statistics.
 
@@ -106,8 +79,8 @@ qplot(EU_Sales, NA_Sales, data=turtle_sales2,
 # Create histograms.
 
 qplot(Global_Sales, bins=25, data=turtle_sales2, main='Histogram global sales')
-qplot(EU_Sales, bins=25, data=turtle_sales2, main='Histogram global sales')
-qplot(NA_Sales, bins=25, data=turtle_sales2, main='Histogram global sales')
+qplot(EU_Sales, bins=25, data=turtle_sales2, main='Histogram EU sales')
+qplot(NA_Sales, bins=25, data=turtle_sales2, main='Histogram NA sales')
 
 ## 2c) Boxplots
 # Create boxplots.
@@ -139,6 +112,8 @@ as_tibble(turtle_sales_product)
 # Explore the data frame.
 
 summary(turtle_sales_product)
+
+View(turtle_sales_product)
 
 ## 3b) Determine which plot is the best to compare game sales.
 # Create scatterplots.
@@ -178,8 +153,20 @@ qplot(NA_Sales, data=turtle_sales_product, colour=I('orange'),
 
 # 4. Observations and insights
 
+# relationship between partial sales and global sales
+# skewness
 
+# Install the moments package and load the library.
+install.packages('moments') 
+library(moments)
 
+skewness(turtle_sales2$Global_Sales)
+skewness(turtle_sales2$EU_Sales)
+skewness(turtle_sales2$NA_Sales)
+
+# all skewed to the right or positively skewed
+
+# some outliers to watch (on recommendations)
 
 
 
@@ -187,7 +174,7 @@ qplot(NA_Sales, data=turtle_sales_product, colour=I('orange'),
 ###############################################################################
 
 
-# Week 5 assignment: Cleaning and maniulating data using R
+# Week 5: Cleaning and maniulating data using R -------------------------------
 
 ## Utilising R, you will explore, prepare and explain the normality of the data
 ## set based on plots, Skewness, Kurtosis, and a Shapiro-Wilk test. Note that
@@ -217,11 +204,33 @@ qplot(NA_Sales, data=turtle_sales_product, colour=I('orange'),
 
 # View data frame created in Week 4.
 
+turtle_sales_product
+
+# View head, structore, descriptive statistics.
+
+head(turtle_sales_product)
+str(turtle_sales_product)
+summary(turtle_sales_product)
+
 
 # Check output: Determine the min, max, and mean values.
+.
+min(turtle_sales_product$Global_Sales)
+min(turtle_sales_product$EU_Sales)
+min(turtle_sales_product$NA_Sales)
+
+max(turtle_sales_product$Global_Sales)
+max(turtle_sales_product$EU_Sales)
+max(turtle_sales_product$NA_Sales)
+
+mean(turtle_sales_product$Global_Sales)
+mean(turtle_sales_product$EU_Sales)
+mean(turtle_sales_product$NA_Sales)
 
 
 # View the descriptive statistics.
+
+summary(turtle_sales_product)
 
 
 ###############################################################################
@@ -231,19 +240,44 @@ qplot(NA_Sales, data=turtle_sales_product, colour=I('orange'),
 ## 2a) Create Q-Q Plots
 # Create Q-Q Plots.
 
+qqnorm(turtle_sales_product$Global_Sales)
+# Add a reference line:
+qqline(turtle_sales_product$Global_Sales, col='blue')
+
+qqnorm(turtle_sales_product$EU_Sales)
+# Add a reference line:
+qqline(turtle_sales_product$EU_Sales, col='blue')
+
+qqnorm(turtle_sales_product$NA_Sales)
+# Add a reference line:
+qqline(turtle_sales_product$NA_Sales, col='blue')
 
 
 ## 2b) Perform Shapiro-Wilk test
 # Install and import Moments.
 
+install.packages('moments') 
+library(moments)
 
 # Perform Shapiro-Wilk test.
 
+shapiro.test((turtle_sales_product$Global_Sales))
+shapiro.test((turtle_sales_product$EU_Sales))
+shapiro.test((turtle_sales_product$NA_Sales))
 
+# Our p-values are way below 0.05 (Global 2.2e-16, EU 2.987e-16, NA 2.2e-16),
+# so we can conclude that the sample data is not normally distributed.
 
 ## 2c) Determine Skewness and Kurtosis
 # Skewness and Kurtosis.
 
+skewness(turtle_sales_product$Global_Sales)
+skewness(turtle_sales_product$EU_Sales)
+skewness(turtle_sales_product$NA_Sales)
+
+kurtosis(turtle_sales_product$Global_Sales)
+kurtosis(turtle_sales_product2$EU_Sales)
+kurtosis(turtle_sales_product2$NA_Sales)
 
 
 ## 2d) Determine correlation
