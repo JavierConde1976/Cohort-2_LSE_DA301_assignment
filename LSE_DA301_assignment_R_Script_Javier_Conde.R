@@ -41,8 +41,22 @@ turtle_sales <- read.csv(file.choose(), header=T)
 
 # Print the data frame.
 turtle_sales
+summary (turtle_sales)
+str(turtle_sales)
 
 View(turtle_sales)
+
+# Explore NA and duplicates.
+
+is.na(turtle_sales)
+apply(is.na(turtle_sales), 2, which)
+
+# Only two NA in 'Year' column, rows 180 and 258. Remove these columns in next 
+# step so no action taken.
+
+duplicated(turtle_sales)
+
+# No duplicated observations.
 
 # Create a new data frame from a subset of the sales data frame.
 # Remove unnecessary columns (Ranking, Year, Genre, Publisher). 
@@ -300,6 +314,16 @@ ggplot(data=turtle_sales_product,mapping=aes(x=EU_Sales, y=NA_Sales)) +
   labs(title="Turtle Games Europe sales vs North America sales(Million GBP)")
 
 
+# Scatterplot Product vs global sales
+
+ggplot(data=turtle_sales_product,mapping=aes(x=Product, y=Global_Sales)) +
+  geom_point(color='black',
+             alpha=0.75,
+             size=2.5) +
+  geom_smooth(method='lm', color='orange') +
+  scale_x_continuous("GProduct ID") +
+  scale_y_continuous("Global sales") +
+  labs(title="Turtle Games product global sales (Million GBP)")
 
 ###############################################################################
 
@@ -316,24 +340,52 @@ ggplot(data=turtle_sales_product,mapping=aes(x=EU_Sales, y=NA_Sales)) +
 
 # Week 6: Making recommendations to the business using R------------------------
 
-# 1. Load and explor the data
+# 1. Load and explore the data
 # View data frame created in Week 5.
 
+View(turtle_sales_product)
 
 # Determine a summary of the data frame.
-
+summary(turtle_sales_product)
 
 ###############################################################################
 
 # 2. Create a simple linear regression model
 ## 2a) Determine the correlation between columns
+
+cor(turtle_sales_product)
 # Create a linear regression model on the original data.
 
+model1 <- lm(NA_Sales ~ Global_Sales, data=turtle_sales_product)
+model2 <- lm(EU_Sales ~ Global_Sales, data=turtle_sales_product)
+model3 <- lm(EU_Sales ~ NA_Sales, data=turtle_sales_product)
+model4 <- lm(NA_Sales ~ EU_Sales, data=turtle_sales_product)
+
+# View the model.
+model1
+summary(model1)
+model2
+summary(model2)
+model3
+summary(model3)
+model4
+summary(model4)
 
 
 ## 2b) Create a plot (simple linear regression)
 # Basic visualisation.
 
+plot(turtle_sales_product$NA_Sales, turtle_sales_product$Global_Sales)
+abline(coefficients(model1))
+
+plot(turtle_sales_product$EU_Sales, turtle_sales_product$Global_Sales)
+abline(coefficients(model2))
+
+plot(turtle_sales_product$EU_Sales, turtle_sales_product$NA_Sales)
+abline(coefficients(model3))
+
+plot(turtle_sales_product$NA_Sales, turtle_sales_product$EU_Sales)
+abline(coefficients(model4))
 
 ###############################################################################
 
@@ -341,7 +393,28 @@ ggplot(data=turtle_sales_product,mapping=aes(x=EU_Sales, y=NA_Sales)) +
 # Select only numeric columns from the original data frame.
 
 
+names(turtle_sales_product)
+turtle_sales_noproduct <- subset(turtle_sales_product, select=-c(Product))
+
+str(turtle_sales_noproduct)
+summary(turtle_sales_noproduct)
+
+# Determine the correlation between the sales columns
+
+cor(turtle_sales_noproduct)
+
+
 # Multiple linear regression model.
+
+modelA = lm(Global_Sales~NA_Sales+EU_Sales, data=turtle_sales_noproduct)
+summary(modelA)
+
+# If we include the variable "Product'
+
+modelB = lm(Global_Sales~NA_Sales+EU_Sales+Product, data=turtle_sales_product)
+summary(modelB)
+
+# Model B including the variable "Product' is slightly more robust (AdjR2=0.97 vs 0.96 Model A)
 
 
 ###############################################################################
@@ -349,12 +422,97 @@ ggplot(data=turtle_sales_product,mapping=aes(x=EU_Sales, y=NA_Sales)) +
 # 4. Predictions based on given values
 # Compare with observed values for a number of records.
 
+View(turtle_sales_product)
 
+# We use model A as we are given just two independent variables data
+
+# NA_Sales_sum of 34.02 and EU_Sales_sum of 23.80
+
+NA_Sales <- c(34.02)
+EU_Sales <- c(23.80)
+
+sales1 <- data.frame(NA_Sales, EU_Sales)
+
+# Predicted Global_Sales value
+predict(modelA, newdata = sales1)
+
+# Predicted value 68.056 vs observation value 67.85: good 
+
+# NA_Sales_sum of 3.93 and EU_Sales_sum of 1.56.
+# Values not on provided data set
+# Most similar 3.94/1.28 with expected Global_sales value 8.36
+
+NA_Sales <- c(3.94)
+EU_Sales <- c(1.28)
+
+sales2 <- data.frame(NA_Sales, EU_Sales)
+
+# Predicted Global_Sales value
+predict(modelA, newdata = sales2)
+
+# Predicted value 7.03 vs observation value 8.36: average
+
+# NA_Sales_sum of 2.73 and EU_Sales_sum of 0.65, expected value 4.32
+
+NA_Sales <- c(2.73)
+EU_Sales <- c(0.65)
+
+sales3 <- data.frame(NA_Sales, EU_Sales)
+
+# Predicted Global_Sales value
+predict(modelA, newdata = sales3)
+
+# Predicted value 4.90 vs observation value 4.32: good
+
+# NA_Sales_sum of 2.26 and EU_Sales_sum of 0.97.
+# Values not on provided data set
+# Most similar 2.27/2.30 with expected Global_sales value 5.60
+
+NA_Sales <- c(2.27)
+EU_Sales <- c(2.30)
+
+sales4 <- data.frame(NA_Sales, EU_Sales)
+
+# Predicted Global_Sales value
+predict(modelA, newdata = sales4)
+
+
+# NA_Sales_sum of 22.08 and EU_Sales_sum of 0.52, Global sales 23.21
+
+NA_Sales <- c(22.08)
+EU_Sales <- c(0.52)
+
+sales <- data.frame(NA_Sales, EU_Sales)
+
+# Predicted Global_Sales value
+predict(modelA, newdata = sales)
+
+# Predicted value 26.62 vs observation value 23.21: average
 
 ###############################################################################
 
 # 5. Observations and insights
-# Your observations and insights here...
+
+# Maybe useful for Turtle Games Global sales by product and platform with an interactive plot
+
+# Install the package.
+install.packages('plotly')
+
+# Import the plotly library.
+library(plotly)
+
+plot_ly(turtle_sales_product,
+        x = ~Product,
+        y = ~Global_Sales,
+        type = 'scatter',
+        mode = 'markers',
+        color = ~factor(cyl),
+        symbols = c('circle', 'x', 'o'),
+        size = 2,
+        alpha = 1)
+
+
+
 
 
 ###############################################################################
