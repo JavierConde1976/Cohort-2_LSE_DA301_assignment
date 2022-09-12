@@ -89,12 +89,16 @@ qplot(Global_Sales, NA_Sales, data=turtle_sales2,
 qplot(EU_Sales, NA_Sales, data=turtle_sales2,
       main='Scatterplot EU sales vs NA sales')
 
+qplot(Global_Sales, Product, data=turtle_sales2,
+      main='Scatterplot gobal sales by product')
+
 ## 2b) Histograms
 # Create histograms.
 
 qplot(Global_Sales, bins=25, data=turtle_sales2, main='Histogram global sales')
 qplot(EU_Sales, bins=25, data=turtle_sales2, main='Histogram EU sales')
 qplot(NA_Sales, bins=25, data=turtle_sales2, main='Histogram NA sales')
+qplot(Product, bins=25, data=turtle_sales2, main='Histogram product by ID')
 
 ## 2c) Boxplots
 # Create boxplots.
@@ -107,6 +111,10 @@ qplot(EU_Sales, data=turtle_sales2, colour=I('orange'),
 
 qplot(NA_Sales, data=turtle_sales2, colour=I('orange'), 
       main='Boxplot NA sales', geom='boxplot')
+
+qplot(Product, data=turtle_sales2, colour=I('orange'), 
+      main='Boxplot Product ID sales', geom='boxplot')
+
 
 
 ###############################################################################
@@ -133,7 +141,7 @@ skewness(turtle_sales2$NA_Sales)
 ###############################################################################
 
 
-# Week 5: Cleaning and manipulating data using R -------------------------------
+# Week 5: Manipulating data using R -------------------------------
 
 # 1. Load and explore the data
 
@@ -171,8 +179,7 @@ summary(turtle_sales2)
 
 # 2. Determine the impact on sales per product_id.
 
-# 2a) Use the group_by and aggregate functions.
-# Group data based on Product and determine the sum per Product.
+# 2a) Group data based on Product and determine the sum per Product.
 
 turtle_sales_product <- turtle_sales %>% group_by(Product) %>%
   summarise(across(.cols = c('NA_Sales', 'EU_Sales', 'Global_Sales'), ~sum(.)))
@@ -187,7 +194,8 @@ summary(turtle_sales_product)
 
 View(turtle_sales_product)
 
-## 2b) Create scatterplots, histograms and boxplots to gain insights into the sales data.
+# 2b) Create scatterplots, histograms and boxplots to gain insights into 
+# the sales data.
 # Scatterplots.
 
 qplot(Global_Sales, EU_Sales, data=turtle_sales_product,
@@ -239,6 +247,7 @@ qqnorm(turtle_sales_product$NA_Sales)
 qqline(turtle_sales_product$NA_Sales, col='blue')
 
 
+
 ## 3b) Perform Shapiro-Wilk test
 # Install and import Moments.
 
@@ -252,9 +261,10 @@ shapiro.test((turtle_sales_product$EU_Sales))
 shapiro.test((turtle_sales_product$NA_Sales))
 
 # Our p-values are way below 0.05 (Global 2.2e-16, EU 2.987e-16, NA 2.2e-16),
-# so we can conclude that the sample data is not normally distributed.
+# so the data provided is not normally distributed.
 
 ## 3c) Determine Skewness and Kurtosis
+
 # Skewness and Kurtosis.
 
 skewness(turtle_sales_product$Global_Sales)
@@ -266,7 +276,9 @@ kurtosis(turtle_sales_product2$EU_Sales)
 kurtosis(turtle_sales_product2$NA_Sales)
 
 
-## 3d) Determine correlation between the sales data columns
+## 3d) Correlation between the sales data columns.
+
+# Correlation between the sales data columns.
 
 round(cor(turtle_sales_product), digits=2)
 
@@ -287,8 +299,8 @@ ggplot(data=turtle_sales_product,mapping=aes(x=Global_Sales, y=NA_Sales)) +
              size=2.5) +
   geom_smooth(method='lm', color='orange') +
   scale_x_continuous("Global sales") +
-  scale_y_continuous("North America sales") +
-  labs(title="Turtle Games global sales vs North America sales (Million GBP)")
+  scale_y_continuous("NA sales") +
+  labs(title="Turtle Games global sales vs NA sales (Million GBP)")
 
 
 # Scatterplot global sales vs Europe sales
@@ -299,8 +311,8 @@ ggplot(data=turtle_sales_product,mapping=aes(x=Global_Sales, y=EU_Sales)) +
              size=2.5) +
   geom_smooth(method='lm', color='orange') +
   scale_x_continuous("Global sales") +
-  scale_y_continuous("Europe sales") +
-  labs(title="Turtle Games global sales vs North Europe sales(Million GBP)")
+  scale_y_continuous("EU sales") +
+  labs(title="Turtle Games global sales vs EU sales(Million GBP)")
 
 # Scatterplot global sales vs Europe sales
 
@@ -309,12 +321,12 @@ ggplot(data=turtle_sales_product,mapping=aes(x=EU_Sales, y=NA_Sales)) +
              alpha=0.75,
              size=2.5) +
   geom_smooth(method='lm', color='orange') +
-  scale_x_continuous("Global sales") +
-  scale_y_continuous("Europe sales") +
-  labs(title="Turtle Games Europe sales vs North America sales(Million GBP)")
+  scale_x_continuous("EU sales") +
+  scale_y_continuous("NA sales") +
+  labs(title="Turtle Games EU sales vs NA sales(Million GBP)")
 
 
-# Scatterplot Product vs global sales
+# Scatterplot Product vs global sales (linear)
 
 ggplot(data=turtle_sales_product,mapping=aes(x=Product, y=Global_Sales)) +
   geom_point(color='black',
@@ -324,6 +336,19 @@ ggplot(data=turtle_sales_product,mapping=aes(x=Product, y=Global_Sales)) +
   scale_x_continuous("GProduct ID") +
   scale_y_continuous("Global sales") +
   labs(title="Turtle Games product global sales (Million GBP)")
+
+# Scatterplot Product vs global sales (non linear)
+
+ggplot(data=turtle_sales_product,mapping=aes(x=Product, y=Global_Sales)) +
+  geom_point(color='black',
+             alpha=0.75,
+             size=2.5) +
+  geom_smooth(color='orange') +
+  scale_x_continuous("GProduct ID") +
+  scale_y_continuous("Global sales") +
+  labs(title="Turtle Games product global sales (Million GBP)")
+
+# Non linear seems to be the best for product/global sales
 
 ###############################################################################
 
@@ -354,7 +379,8 @@ summary(turtle_sales_product)
 ## 2a) Determine the correlation between columns
 
 cor(turtle_sales_product)
-# Create a linear regression model on the original data.
+
+# Create a linear regression model
 
 model1 <- lm(NA_Sales ~ Global_Sales, data=turtle_sales_product)
 model2 <- lm(EU_Sales ~ Global_Sales, data=turtle_sales_product)
@@ -389,9 +415,9 @@ abline(coefficients(model4))
 
 ###############################################################################
 
-# 3. Create a multiple linear regression model
-# Select only numeric columns from the original data frame.
+# 3. Create a multiple linear regression model.
 
+# Select only numeric columns.
 
 names(turtle_sales_product)
 turtle_sales_noproduct <- subset(turtle_sales_product, select=-c(Product))
@@ -401,7 +427,7 @@ summary(turtle_sales_noproduct)
 
 # Determine the correlation between the sales columns
 
-cor(turtle_sales_noproduct)
+round(cor(turtle_sales_noproduct), digits = 2)
 
 
 # Multiple linear regression model.
@@ -409,12 +435,14 @@ cor(turtle_sales_noproduct)
 modelA = lm(Global_Sales~NA_Sales+EU_Sales, data=turtle_sales_noproduct)
 summary(modelA)
 
+
 # If we include the variable "Product'
 
 modelB = lm(Global_Sales~NA_Sales+EU_Sales+Product, data=turtle_sales_product)
 summary(modelB)
 
-# Model B including the variable "Product' is slightly more robust (AdjR2=0.97 vs 0.96 Model A)
+# Model B including the variable "Product' is slightly more robust
+# (AdjR2=0.97 vs 0.96 Model A)
 
 
 ###############################################################################
@@ -426,7 +454,7 @@ View(turtle_sales_product)
 
 # We use model A as we are given just two independent variables data
 
-# NA_Sales_sum of 34.02 and EU_Sales_sum of 23.80
+# A. NA_Sales_sum of 34.02 and EU_Sales_sum of 23.80
 
 NA_Sales <- c(34.02)
 EU_Sales <- c(23.80)
@@ -438,9 +466,9 @@ predict(modelA, newdata = sales1)
 
 # Predicted value 68.056 vs observation value 67.85: good 
 
-# NA_Sales_sum of 3.93 and EU_Sales_sum of 1.56.
+# B. NA_Sales_sum of 3.93 and EU_Sales_sum of 1.56.
 # Values not on provided data set
-# Most similar 3.94/1.28 with expected Global_sales value 8.36
+# Most similar 3.94/1.28 with observed Global_sales value 8.36
 
 NA_Sales <- c(3.94)
 EU_Sales <- c(1.28)
@@ -452,7 +480,7 @@ predict(modelA, newdata = sales2)
 
 # Predicted value 7.03 vs observation value 8.36: average
 
-# NA_Sales_sum of 2.73 and EU_Sales_sum of 0.65, expected value 4.32
+# C. NA_Sales_sum of 2.73 and EU_Sales_sum of 0.65, observed value 4.32
 
 NA_Sales <- c(2.73)
 EU_Sales <- c(0.65)
@@ -464,9 +492,9 @@ predict(modelA, newdata = sales3)
 
 # Predicted value 4.90 vs observation value 4.32: good
 
-# NA_Sales_sum of 2.26 and EU_Sales_sum of 0.97.
+# D. NA_Sales_sum of 2.26 and EU_Sales_sum of 0.97.
 # Values not on provided data set
-# Most similar 2.27/2.30 with expected Global_sales value 5.60
+# Most similar 2.27/2.30 with observed Global_sales value 5.60
 
 NA_Sales <- c(2.27)
 EU_Sales <- c(2.30)
@@ -476,8 +504,9 @@ sales4 <- data.frame(NA_Sales, EU_Sales)
 # Predicted Global_Sales value
 predict(modelA, newdata = sales4)
 
+# Predicted value 6.36 vs observation value 5.60: average
 
-# NA_Sales_sum of 22.08 and EU_Sales_sum of 0.52, Global sales 23.21
+# E. NA_Sales_sum of 22.08 and EU_Sales_sum of 0.52, Global sales 23.21
 
 NA_Sales <- c(22.08)
 EU_Sales <- c(0.52)
@@ -491,29 +520,12 @@ predict(modelA, newdata = sales)
 
 ###############################################################################
 
-# 5. Observations and insights
+# 5. Observations and insights.
 
-# Maybe useful for Turtle Games Global sales by product and platform with an interactive plot
+# Please check the attached report for insights, conclusions and 
+# company recommendations.
 
-# Install the package.
-install.packages('plotly')
-
-# Import the plotly library.
-library(plotly)
-
-plot_ly(turtle_sales_product,
-        x = ~Product,
-        y = ~Global_Sales,
-        type = 'scatter',
-        mode = 'markers',
-        color = ~factor(cyl),
-        symbols = c('circle', 'x', 'o'),
-        size = 2,
-        alpha = 1)
-
-
-
-
+# Thank you for reading.
 
 ###############################################################################
 ###############################################################################
